@@ -42,7 +42,7 @@
   }
 </script>
 
-<div class="row">
+<div class="row" style="margin-bottom: 200px;">
   <div class="col-md-8 offset-md-2">
     <h2 class="mb-3">Select a situation:</h2>
     <div class="list-group mb-4">

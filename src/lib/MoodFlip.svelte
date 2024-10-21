@@ -4,28 +4,59 @@
 
   let userSituation = '';
   let flippedResponse = null;
+  let isLoading = false;
 
   function handleInput(event) {
     userSituation = event.target.value;
     flippedResponse = null;
   }
 
-  function generatePositiveResponse(situation) {
-    // This is a simple function to simulate AI-generated responses
-    // In a real-world scenario, you'd want to integrate with an actual AI service API
-    const responses = [
-      `Look on the bright side: ${situation} is an opportunity for growth!`,
-      `Every cloud has a silver lining. In this case, ${situation} might lead to unexpected positive outcomes!`,
-      `Remember, ${situation} is just a temporary setback. You've got this!`,
-      `Think of ${situation} as a plot twist in your life's exciting story!`,
-      `${situation} is challenging, but it's also a chance to showcase your resilience!`
-    ];
-    return responses[Math.floor(Math.random() * responses.length)];
+  async function generatePositiveResponse(situation) {
+    const OPENROUTER_API_KEY = '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';
+    const YOUR_SITE_URL = 'https://moodflip.aidrivencoder.com/';
+    const YOUR_SITE_NAME = 'MoodFlip App';
+
+    try {
+      const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+        method: "POST",
+        headers: {
+          "Authorization": `Bearer ${OPENROUTER_API_KEY}`,
+          "HTTP-Referer": YOUR_SITE_URL,
+          "X-Title": YOUR_SITE_NAME,
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          "model": "openai/gpt-3.5-turbo",
+          "messages": [
+            {
+              "role": "system",
+              "content": "You are a positive and encouraging AI assistant. Your task is to take a user's situation and provide a positive, uplifting perspective on it."
+            },
+            {
+              "role": "user",
+              "content": `Please provide a positive perspective on this situation: ${situation}`
+            }
+          ]
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to get response from OpenRouter API');
+      }
+
+      const data = await response.json();
+      return data.choices[0].message.content;
+    } catch (error) {
+      console.error('Error generating positive response:', error);
+      return 'I apologize, but I encountered an error while trying to generate a response. Please try again later.';
+    }
   }
 
-  function flipIt() {
+  async function flipIt() {
     if (userSituation.trim() !== '') {
-      flippedResponse = generatePositiveResponse(userSituation);
+      isLoading = true;
+      flippedResponse = await generatePositiveResponse(userSituation);
+      isLoading = false;
     }
   }
 </script>
@@ -41,10 +72,10 @@
   
   <button
     class="flip-btn"
-    disabled={!userSituation.trim()}
+    disabled={!userSituation.trim() || isLoading}
     on:click={flipIt}
   >
-    Flip It!
+    {isLoading ? 'Flipping...' : 'Flip It!'}
   </button>
   
   {#if flippedResponse}

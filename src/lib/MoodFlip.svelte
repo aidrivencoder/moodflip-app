@@ -96,6 +96,28 @@
   function prevPage() {
     if (currentPage > 1) currentPage--;
   }
+
+  function generateShareMessage(situation, response) {
+    return `I turned "${situation}" into "${response}" with MoodFlip! 🌟 Transform your perspective at https://moodflip.aidrivencoder.com #MoodFlip #PositiveVibes`;
+  }
+
+  function shareOnTwitter(situation, response) {
+    const message = generateShareMessage(situation, response);
+    const encodedMessage = encodeURIComponent(message);
+    window.open(`https://twitter.com/intent/tweet?text=${encodedMessage}`, '_blank');
+  }
+
+  function shareOnFacebook(situation, response) {
+    const message = generateShareMessage(situation, response);
+    const encodedMessage = encodeURIComponent(message);
+    window.open(`https://www.facebook.com/sharer/sharer.php?u=https://moodflip.aidrivencoder.com&quote=${encodedMessage}`, '_blank');
+  }
+
+  function shareOnLinkedIn(situation, response) {
+    const message = generateShareMessage(situation, response);
+    const encodedMessage = encodeURIComponent(message);
+    window.open(`https://www.linkedin.com/shareArticle?mini=true&url=https://moodflip.aidrivencoder.com&title=MoodFlip&summary=${encodedMessage}`, '_blank');
+  }
 </script>
 
 <div class="mood-flip-container">
@@ -119,6 +141,11 @@
     <div class="response-card" transition:fly={{y: 200, duration: 800, easing: elasticOut}}>
       <h4>Positive Flip:</h4>
       <p>{flippedResponse}</p>
+      <div class="share-buttons">
+        <button on:click={() => shareOnTwitter(userSituation, flippedResponse)} class="share-btn twitter">Share on Twitter</button>
+        <button on:click={() => shareOnFacebook(userSituation, flippedResponse)} class="share-btn facebook">Share on Facebook</button>
+        <button on:click={() => shareOnLinkedIn(userSituation, flippedResponse)} class="share-btn linkedin">Share on LinkedIn</button>
+      </div>
     </div>
   {/if}
 
@@ -129,6 +156,11 @@
         <p class="situation">{flip.situation}</p>
         <p class="response">{flip.response}</p>
         <p class="timestamp">{new Date(flip.timestamp).toLocaleString()}</p>
+        <div class="share-buttons">
+          <button on:click={() => shareOnTwitter(flip.situation, flip.response)} class="share-btn twitter">Share on Twitter</button>
+          <button on:click={() => shareOnFacebook(flip.situation, flip.response)} class="share-btn facebook">Share on Facebook</button>
+          <button on:click={() => shareOnLinkedIn(flip.situation, flip.response)} class="share-btn linkedin">Share on LinkedIn</button>
+        </div>
       </div>
     {/each}
     <div class="pagination">
@@ -280,10 +312,50 @@
     color: #34495e;
   }
 
+  .share-buttons {
+    display: flex;
+    justify-content: space-around;
+    margin-top: 1rem;
+  }
+
+  .share-btn {
+    padding: 8px 15px;
+    border: none;
+    border-radius: 5px;
+    color: white;
+    font-weight: bold;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+  }
+
+  .share-btn.twitter {
+    background-color: #1da1f2;
+  }
+
+  .share-btn.facebook {
+    background-color: #4267B2;
+  }
+
+  .share-btn.linkedin {
+    background-color: #0077b5;
+  }
+
+  .share-btn:hover {
+    opacity: 0.9;
+  }
+
   @media (max-width: 768px) {
     .flip-btn {
       font-size: 1.1rem;
       padding: 12px 24px;
+    }
+
+    .share-buttons {
+      flex-direction: column;
+    }
+
+    .share-btn {
+      margin-bottom: 0.5rem;
     }
   }
 </style>

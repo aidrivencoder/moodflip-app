@@ -2,64 +2,46 @@
   import { fade, fly, scale } from 'svelte/transition';
   import { elasticOut, bounceOut } from 'svelte/easing';
 
-  let situations = [
-    "I failed an exam",
-    "My car broke down",
-    "I lost my phone",
-    "I got stuck in traffic",
-    "I spilled coffee on my shirt",
-    "My computer crashed",
-    "I missed my bus",
-    "I forgot my lunch at home",
-    "I got caught in the rain without an umbrella",
-    "I overslept and was late for work"
-  ];
-
-  let positiveResponses = [
-    "At least you learned what not to study next time!",
-    "Time for an exciting bike adventure!",
-    "Enjoy a digital detox day!",
-    "Extra time to practice your car karaoke skills!",
-    "Congrats! You've invented a new fashion trend!",
-    "Your computer just wanted a power nap too!",
-    "Surprise cardio session achieved!",
-    "Intermittent fasting level: Accidental pro!",
-    "Free shower and water park experience!",
-    "You've mastered the art of the dramatic entrance!"
-  ];
-
-  let selectedSituation = null;
+  let userSituation = '';
   let flippedResponse = null;
 
-  function selectSituation(situation) {
-    selectedSituation = situation;
+  function handleInput(event) {
+    userSituation = event.target.value;
     flippedResponse = null;
   }
 
+  function generatePositiveResponse(situation) {
+    // This is a simple function to simulate AI-generated responses
+    // In a real-world scenario, you'd want to integrate with an actual AI service API
+    const responses = [
+      `Look on the bright side: ${situation} is an opportunity for growth!`,
+      `Every cloud has a silver lining. In this case, ${situation} might lead to unexpected positive outcomes!`,
+      `Remember, ${situation} is just a temporary setback. You've got this!`,
+      `Think of ${situation} as a plot twist in your life's exciting story!`,
+      `${situation} is challenging, but it's also a chance to showcase your resilience!`
+    ];
+    return responses[Math.floor(Math.random() * responses.length)];
+  }
+
   function flipIt() {
-    const index = situations.indexOf(selectedSituation);
-    flippedResponse = positiveResponses[index];
+    if (userSituation.trim() !== '') {
+      flippedResponse = generatePositiveResponse(userSituation);
+    }
   }
 </script>
 
 <div class="mood-flip-container">
-  <h2 class="mb-4">Select a situation:</h2>
-  <div class="situation-grid mb-4">
-    {#each situations as situation}
-      <button
-        class="situation-btn"
-        class:active={situation === selectedSituation}
-        on:click={() => selectSituation(situation)}
-        transition:scale={{duration: 200, easing: bounceOut}}
-      >
-        {situation}
-      </button>
-    {/each}
-  </div>
+  <h2 class="mb-4">Describe your situation:</h2>
+  <textarea
+    class="situation-input mb-4"
+    placeholder="Enter your situation here..."
+    bind:value={userSituation}
+    on:input={handleInput}
+  ></textarea>
   
   <button
     class="flip-btn"
-    disabled={!selectedSituation}
+    disabled={!userSituation.trim()}
     on:click={flipIt}
   >
     Flip It!
@@ -86,34 +68,21 @@
     margin-bottom: 1.5rem;
   }
 
-  .situation-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-    gap: 15px;
-  }
-
-  .situation-btn {
-    background-color: #ecf0f1;
-    border: none;
+  .situation-input {
+    width: 100%;
+    height: 100px;
     padding: 15px;
     border-radius: 10px;
+    border: 2px solid #ecf0f1;
     font-size: 1rem;
+    resize: vertical;
     transition: all 0.3s ease;
-    cursor: pointer;
-    text-align: left;
-    line-height: 1.3;
   }
 
-  .situation-btn:hover {
-    transform: translateY(-3px);
-    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-    background-color: #e0e6e8;
-  }
-
-  .situation-btn.active {
-    background-color: #3498db;
-    color: white;
-    font-weight: bold;
+  .situation-input:focus {
+    outline: none;
+    border-color: #3498db;
+    box-shadow: 0 0 0 2px rgba(52, 152, 219, 0.2);
   }
 
   .flip-btn {
@@ -164,10 +133,6 @@
   }
 
   @media (max-width: 768px) {
-    .situation-grid {
-      grid-template-columns: 1fr;
-    }
-
     .flip-btn {
       font-size: 1.1rem;
       padding: 12px 24px;

@@ -23,7 +23,7 @@
   });
 
   async function generatePositiveResponse(situation) {
-    const OPENROUTER_API_KEY = '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';
+    const OPENROUTER_API_KEY = 'YOUR-API-KEY';
     const YOUR_SITE_URL = 'https://moodflip.aidrivencoder.com/';
     const YOUR_SITE_NAME = 'MoodFlip App';
 
@@ -37,7 +37,7 @@
           "Content-Type": "application/json"
         },
         body: JSON.stringify({
-          "model": "openai/gpt-3.5-turbo",
+          "model": "meta-llama/llama-3.2-1b-instruct:free",
           "messages": [
             {
               "role": "system",

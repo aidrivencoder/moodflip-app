@@ -1,8 +1,9 @@
 <script>
-  import { fade, fly, scale } from 'svelte/transition';
-  import { elasticOut, bounceOut } from 'svelte/easing';
   import { onMount } from 'svelte';
   import { writable } from 'svelte/store';
+  import SituationInput from './components/SituationInput.svelte';
+  import ResponseCard from './components/ResponseCard.svelte';
+  import FlipHistory from './components/FlipHistory.svelte';
 
   let userSituation = '';
   let flippedResponse = null;
@@ -20,11 +21,6 @@
       flipHistory.set(JSON.parse(storedHistory));
     }
   });
-
-  function handleInput(event) {
-    userSituation = event.target.value;
-    flippedResponse = null;
-  }
 
   async function generatePositiveResponse(situation) {
     const OPENROUTER_API_KEY = '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';
@@ -85,277 +81,16 @@
       currentPage = 1;
     }
   }
-
-  $: paginatedHistory = $flipHistory.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
-  $: totalPages = Math.ceil($flipHistory.length / itemsPerPage);
-
-  function nextPage() {
-    if (currentPage < totalPages) currentPage++;
-  }
-
-  function prevPage() {
-    if (currentPage > 1) currentPage--;
-  }
-
-  function generateShareMessage(situation, response) {
-    return `I turned "${situation}" into "${response}" with MoodFlip! 🌟 Transform your perspective at https://moodflip.aidrivencoder.com #MoodFlip #PositiveVibes`;
-  }
-
-  function shareOnTwitter(situation, response) {
-    const message = generateShareMessage(situation, response);
-    const encodedMessage = encodeURIComponent(message);
-    window.open(`https://twitter.com/intent/tweet?text=${encodedMessage}`, '_blank');
-  }
-
-  function shareOnFacebook(situation, response) {
-    const message = generateShareMessage(situation, response);
-    const encodedMessage = encodeURIComponent(message);
-    window.open(`https://www.facebook.com/sharer/sharer.php?u=https://moodflip.aidrivencoder.com&quote=${encodedMessage}`, '_blank');
-  }
-
-  function shareOnLinkedIn(situation, response) {
-    const message = generateShareMessage(situation, response);
-    const encodedMessage = encodeURIComponent(message);
-    window.open(`https://www.linkedin.com/shareArticle?mini=true&url=https://moodflip.aidrivencoder.com&title=MoodFlip&summary=${encodedMessage}`, '_blank');
-  }
 </script>
 
 <div class="mood-flip-container">
-  <h2 class="mb-4">Describe your situation:</h2>
-  <textarea
-    class="situation-input mb-4"
-    placeholder="Enter your situation here..."
-    bind:value={userSituation}
-    on:input={handleInput}
-  ></textarea>
+  <SituationInput bind:userSituation {isLoading} on:click={flipIt} />
   
-  <button
-    class="flip-btn"
-    disabled={!userSituation.trim() || isLoading}
-    on:click={flipIt}
-  >
-    {isLoading ? 'Flipping...' : 'Flip It!'}
-  </button>
-  
-  {#if flippedResponse}
-    <div class="response-card" transition:fly={{y: 200, duration: 800, easing: elasticOut}}>
-      <h4>Positive Flip:</h4>
-      <p>{flippedResponse}</p>
-      <div class="share-buttons">
-        <button on:click={() => shareOnTwitter(userSituation, flippedResponse)} class="share-btn twitter">Share on Twitter</button>
-        <button on:click={() => shareOnFacebook(userSituation, flippedResponse)} class="share-btn facebook">Share on Facebook</button>
-        <button on:click={() => shareOnLinkedIn(userSituation, flippedResponse)} class="share-btn linkedin">Share on LinkedIn</button>
-      </div>
-    </div>
-  {/if}
+  <ResponseCard {flippedResponse} {userSituation} />
 
-  <div class="flip-history">
-    <h3>Flip History</h3>
-    {#each paginatedHistory as flip}
-      <div class="history-item">
-        <p class="situation">{flip.situation}</p>
-        <p class="response">{flip.response}</p>
-        <p class="timestamp">{new Date(flip.timestamp).toLocaleString()}</p>
-        <div class="share-buttons">
-          <button on:click={() => shareOnTwitter(flip.situation, flip.response)} class="share-btn twitter">Share on Twitter</button>
-          <button on:click={() => shareOnFacebook(flip.situation, flip.response)} class="share-btn facebook">Share on Facebook</button>
-          <button on:click={() => shareOnLinkedIn(flip.situation, flip.response)} class="share-btn linkedin">Share on LinkedIn</button>
-        </div>
-      </div>
-    {/each}
-    <div class="pagination">
-      <button on:click={prevPage} disabled={currentPage === 1}>Previous</button>
-      <span>{currentPage} of {totalPages}</span>
-      <button on:click={nextPage} disabled={currentPage === totalPages}>Next</button>
-    </div>
-  </div>
+  <FlipHistory {flipHistory} bind:currentPage {itemsPerPage} />
 </div>
 
 <style>
-  .mood-flip-container {
-    max-width: 800px;
-    margin: 0 auto;
-  }
-
-  h2, h3 {
-    color: #2c3e50;
-    font-weight: bold;
-    font-size: 1.8rem;
-    margin-bottom: 1.5rem;
-  }
-
-  h3 {
-    font-size: 1.5rem;
-    margin-top: 2rem;
-  }
-
-  .situation-input {
-    width: 100%;
-    height: 100px;
-    padding: 15px;
-    border-radius: 10px;
-    border: 2px solid #ecf0f1;
-    font-size: 1rem;
-    resize: vertical;
-    transition: all 0.3s ease;
-  }
-
-  .situation-input:focus {
-    outline: none;
-    border-color: #3498db;
-    box-shadow: 0 0 0 2px rgba(52, 152, 219, 0.2);
-  }
-
-  .flip-btn {
-    background-color: #2ecc71;
-    color: white;
-    border: none;
-    padding: 15px 30px;
-    font-size: 1.3rem;
-    font-weight: bold;
-    border-radius: 50px;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    display: block;
-    margin: 2rem auto;
-    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-  }
-
-  .flip-btn:hover:not(:disabled) {
-    transform: scale(1.05) rotate(-3deg);
-    box-shadow: 0 6px 12px rgba(0,0,0,0.15);
-    background-color: #27ae60;
-  }
-
-  .flip-btn:disabled {
-    background-color: #95a5a6;
-    cursor: not-allowed;
-  }
-
-  .response-card {
-    background-color: #ffffff;
-    border-radius: 15px;
-    padding: 25px;
-    box-shadow: 0 10px 20px rgba(0,0,0,0.1);
-    margin-top: 2rem;
-  }
-
-  .response-card h4 {
-    color: #3498db;
-    font-weight: bold;
-    margin-bottom: 15px;
-    font-size: 1.4rem;
-  }
-
-  .response-card p {
-    font-size: 1.2rem;
-    color: #34495e;
-    line-height: 1.6;
-  }
-
-  .flip-history {
-    margin-top: 2rem;
-  }
-
-  .history-item {
-    background-color: #f8f9fa;
-    border-radius: 10px;
-    padding: 15px;
-    margin-bottom: 1rem;
-  }
-
-  .history-item .situation {
-    font-weight: bold;
-    color: #2c3e50;
-  }
-
-  .history-item .response {
-    color: #34495e;
-    margin-top: 0.5rem;
-  }
-
-  .history-item .timestamp {
-    font-size: 0.8rem;
-    color: #7f8c8d;
-    margin-top: 0.5rem;
-  }
-
-  .pagination {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    margin-top: 1rem;
-  }
-
-  .pagination button {
-    background-color: #3498db;
-    color: white;
-    border: none;
-    padding: 8px 15px;
-    margin: 0 10px;
-    border-radius: 5px;
-    cursor: pointer;
-    transition: background-color 0.3s ease;
-  }
-
-  .pagination button:hover:not(:disabled) {
-    background-color: #2980b9;
-  }
-
-  .pagination button:disabled {
-    background-color: #bdc3c7;
-    cursor: not-allowed;
-  }
-
-  .pagination span {
-    font-size: 1rem;
-    color: #34495e;
-  }
-
-  .share-buttons {
-    display: flex;
-    justify-content: space-around;
-    margin-top: 1rem;
-  }
-
-  .share-btn {
-    padding: 8px 15px;
-    border: none;
-    border-radius: 5px;
-    color: white;
-    font-weight: bold;
-    cursor: pointer;
-    transition: background-color 0.3s ease;
-  }
-
-  .share-btn.twitter {
-    background-color: #1da1f2;
-  }
-
-  .share-btn.facebook {
-    background-color: #4267B2;
-  }
-
-  .share-btn.linkedin {
-    background-color: #0077b5;
-  }
-
-  .share-btn:hover {
-    opacity: 0.9;
-  }
-
-  @media (max-width: 768px) {
-    .flip-btn {
-      font-size: 1.1rem;
-      padding: 12px 24px;
-    }
-
-    .share-buttons {
-      flex-direction: column;
-    }
-
-    .share-btn {
-      margin-bottom: 0.5rem;
-    }
-  }
+  @import './styles/MoodFlip.css';
 </style>

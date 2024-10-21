@@ -30,11 +30,11 @@
           "messages": [
             {
               "role": "system",
-              "content": "You are a positive and encouraging AI assistant. Your task is to take a user's situation and provide a positive, uplifting perspective on it."
+              "content": "You are a positive and encouraging AI assistant. Your task is to take a user's situation and provide a short, humorous, uplifting perspective on it. Use emojis where appropriate to enhance the positive message. Keep your response concise, ideally within 1-2 sentences."
             },
             {
               "role": "user",
-              "content": `Please provide a positive perspective on this situation: ${situation}`
+              "content": `Please provide a short positive perspective on this situation: ${situation}`
             }
           ]
         })
@@ -48,7 +48,7 @@
       return data.choices[0].message.content;
     } catch (error) {
       console.error('Error generating positive response:', error);
-      return 'I apologize, but I encountered an error while trying to generate a response. Please try again later.';
+      return 'Oops! 😅 Something went wrong. Please try again later!';
     }
   }
 

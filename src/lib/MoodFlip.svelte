@@ -1,6 +1,7 @@
 <script>
   import { onMount } from 'svelte';
   import { writable } from 'svelte/store';
+  import { sessionId } from '$lib/stores/session';
   import SituationInput from './components/SituationInput.svelte';
   import ResponseCard from './components/ResponseCard.svelte';
   import FlipHistory from './components/FlipHistory.svelte';
@@ -14,13 +15,29 @@
   let currentPage = 1;
   const itemsPerPage = 5;
 
-  // Load flip history from local storage
+  let currentSessionId;
+  
+  // Initialize session and load flip history
   onMount(() => {
-    const storedHistory = localStorage.getItem('flipHistory');
-    if (storedHistory) {
-      flipHistory.set(JSON.parse(storedHistory));
-    }
+    sessionId.init();
+    sessionId.subscribe(value => {
+      if (value) {
+        currentSessionId = value;
+        loadHistory(value);
+      }
+    });
   });
+
+  async function loadHistory(sid) {
+    try {
+      const response = await fetch(`/api/history?sessionId=${sid}`);
+      if (!response.ok) throw new Error('Failed to load history');
+      const data = await response.json();
+      flipHistory.set(data);
+    } catch (error) {
+      console.error('Error loading history:', error);
+    }
+  }
 
   async function generatePositiveResponse(situation) {
     try {
@@ -50,13 +67,25 @@
       flippedResponse = await generatePositiveResponse(userSituation);
       isLoading = false;
 
-      // Save to history
-      const newFlip = { situation: userSituation, response: flippedResponse, timestamp: new Date().toISOString() };
-      flipHistory.update(history => {
-        const updatedHistory = [newFlip, ...history];
-        localStorage.setItem('flipHistory', JSON.stringify(updatedHistory));
-        return updatedHistory;
-      });
+      // Save to database
+      try {
+        const response = await fetch('/api/history', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            sessionId: currentSessionId,
+            situation: userSituation,
+            response: flippedResponse
+          })
+        });
+        
+        if (!response.ok) throw new Error('Failed to save flip');
+        
+        // Reload history to show new flip
+        await loadHistory(currentSessionId);
+      } catch (error) {
+        console.error('Error saving flip:', error);
+      }
 
       // Reset current page to 1 to show the latest flip
       currentPage = 1;
